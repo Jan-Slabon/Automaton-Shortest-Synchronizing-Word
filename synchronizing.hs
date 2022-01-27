@@ -32,3 +32,20 @@ transition l a n = foldl (net n a) 0 l
 transitionInPowerAutomata :: [Function]->Char->[Integer]->[Integer]
 transitionInPowerAutomata f a = map (transition f a) 
 
+type Trace = ([Integer],String)
+
+singleStateTrace :: [Trace] -> String
+singleStateTrace [] = "None"
+singleStateTrace ((node, s):xs)
+                    | ((length node) == 1) = s
+                    | otherwise = singleStateTrace xs
+isSingleState :: Bool -> Trace -> Bool
+isSingleState prev (node,s)
+                | ((length node) == 1) = True
+                | otherwise = (prev || False)
+
+bfs :: String -> [Function] -> [Trace] -> String
+bfs alfabet func start 
+            | isReached = singleStateTrace start 
+            | otherwise = bfs alfabet func $ concat $ map (\a -> map (\(li, s) -> (transitionInPowerAutomata func a li, a:s)) start) alfabet 
+            where isReached = foldl isSingleState False start 

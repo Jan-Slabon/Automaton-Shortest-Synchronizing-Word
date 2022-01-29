@@ -1,4 +1,5 @@
-##Synchronizing DFA with Haskell  
+## Synchronizing DFA with Haskell 
+
 Main IO monad reads automaton from file "automaton.txt", in order for it to work file must be of given structure:  
 "[0-9]+\n[A-Za-z]+\n([0-9]+[A-Za-z][0-9]+\n)+"  
 where:  

@@ -1,3 +1,5 @@
+import Data.Char
+
 powerset :: Integer ->[Integer]
 powerset n = [1..2^n-1]
 
@@ -11,18 +13,19 @@ pow2 :: Integer->Integer->Integer
 pow2 a b = a + 2^b
 
 setToInt :: [Integer]->Integer
-setToInt l = foldl pow2 0 l
+setToInt = foldl pow2 0
 
 intToSet :: Integer -> [Integer]
 intToSet = intToSet_ 0 []
 
 binariesToSets :: [Integer] -> [[Integer]]
-binariesToSets list = map intToSet list
+binariesToSets  = map intToSet
 
 type Function = (Integer, Char, Integer)
+type Trace = ([Integer],String)
 
 net :: Integer->Char->Integer->Function->Integer
-net n a k (q,c,p) = if ((n == q) && (a==c))
+net n a k (q,c,p) = if (n == q) && (a==c)
     then p+k
     else 0+k
 
@@ -32,7 +35,7 @@ transition l a n = foldl (net n a) 0 l
 transitionInPowerAutomata :: [Function]->Char->[Integer]->[Integer]
 transitionInPowerAutomata f a = map (transition f a) 
 
-type Trace = ([Integer],String)
+
 collapse_ :: [Integer] -> [Integer] ->[Integer]
 collapse_ [] tmp = tmp
 collapse_ (s:xs) tmp = collapse_ (filter (/=s) xs) $ s:tmp
@@ -43,25 +46,34 @@ collapse l =  collapse_ l []
 singleStateTrace :: [Trace] -> String
 singleStateTrace [] = "None"
 singleStateTrace ((node, s):xs)
-                    | ((length $ collapse node) == 1) = s
+                    | length (collapse node) == 1 = s
                     | otherwise = singleStateTrace xs
 isSingleState :: Bool -> Trace -> Bool
 isSingleState prev (node,s)
-                | ((length $ collapse node) == 1) = True
-                | otherwise = (prev || False)
+                | length  (collapse node) == 1 = True
+                | otherwise = prev || False
 
-bfs :: String -> [Function] -> [Trace] -> String
-bfs alfabet func start 
+bfs :: String -> Integer -> [Function]  -> [Trace] -> String
+bfs _ 0 _ _ = "None"
+bfs alphabet n func start
             | isReached = singleStateTrace start 
-            | otherwise = bfs alfabet func $ concat $ map (\a -> map (\(li, s) -> (transitionInPowerAutomata func a li, a:s)) start) alfabet 
+            | otherwise = bfs alphabet (n-1) func $ concatMap (\a -> map (\(li, s) -> (transitionInPowerAutomata func a li, a:s)) start) alphabet 
             where isReached = foldl isSingleState False start 
+
+toFunction :: [String] ->[Function]
+toFunction = foldl (\l s -> (toInteger (digitToInt (head s)), s !! 1, toInteger(digitToInt (s !! 2))):l) [] 
 
 main :: IO ()
 main = 
     do 
         file <- readFile "automaton.txt"
-        print file
-
+        let fileLines  = lines file
+        let size = read (head fileLines) :: Integer
+        let startState = intToSet $ 2^size - 1
+        let alphabet = fileLines !! 1
+        let function = toFunction $ (tail.tail) fileLines
+        print $ bfs alphabet (2^size -1) function [(startState, "")]
+        
 --func = [(1,'b',2),(1,'a',1),(2,'b',2),(2,'a',1)]
---alfabet = "ab"
+--alphabet = "ab"
 --start = [([1,2],"")]
